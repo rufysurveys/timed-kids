@@ -1,19 +1,17 @@
 import { createBrowserClient } from "@supabase/ssr";
 
+// Supabase publishable credentials are intentionally safe for browser bundles.
+const projectUrl =
+  process.env.NEXT_PUBLIC_SUPABASE_URL ||
+  "https://buiwhojoaofwblfwvchb.supabase.co";
+const publishableKey =
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+  "sb_publishable_lKalMnWvnjhOYBD2BDuJMw_kl_EpC9V";
+
 export function hasSupabaseConfig() {
-  return Boolean(
-    process.env.NEXT_PUBLIC_SUPABASE_URL &&
-      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
-  );
+  return Boolean(projectUrl && publishableKey);
 }
 
 export function createClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-
-  if (!url || !key) {
-    throw new Error("Supabase environment variables are not configured.");
-  }
-
-  return createBrowserClient(url, key);
+  return createBrowserClient(projectUrl, publishableKey);
 }

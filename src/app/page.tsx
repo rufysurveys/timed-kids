@@ -253,16 +253,16 @@ export default function Home() {
               <span><b>Local</b> support</span>
             </div>
           </div>
-          <div className="hero-visual" aria-label="Featured headphones">
+          <div className="hero-visual" aria-label="Featured children’s clothing">
             <div className="discount-bubble"><strong>30%</strong><span>OFF</span></div>
             <Image
-              src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=950&q=90"
-              alt="Premium wireless headphones"
+              src="https://images.unsplash.com/photo-1622290291468-a28f7a7dc6a8?auto=format&fit=crop&w=950&q=90"
+              alt="Colourful children’s clothing from Timed Kids"
               fill
               priority
               sizes="(max-width: 700px) 100vw, 50vw"
             />
-            <div className="floating-card"><span>Premium sound</span><b>New arrival</b></div>
+            <div className="floating-card"><span>Soft cotton styles</span><b>New arrival</b></div>
           </div>
         </div>
         <div className="benefits">

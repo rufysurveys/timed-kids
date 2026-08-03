@@ -6,9 +6,12 @@ import Link from "next/link";
 import { useCart } from "@/components/cart-provider";
 import { products as catalogProducts } from "@/lib/catalog";
 import { storageKey, store } from "@/config/store";
+import { createClient, hasSupabaseConfig } from "@/lib/supabase/client";
+import { productFromRow, type StoreProductRow } from "@/lib/catalog";
 
 type Product = {
   id: number;
+  slug?: string;
   name: string;
   category: string;
   price: number;
@@ -180,6 +183,11 @@ export default function Home() {
       window.localStorage.removeItem(storageKey("products"));
     }
     if (restored) queueMicrotask(() => setProducts(restored));
+    if (hasSupabaseConfig()) {
+      createClient().from("store_products").select("*").eq("is_active", true).order("created_at", { ascending: false }).then(({ data }) => {
+        if (data?.length) setProducts((data as StoreProductRow[]).map(productFromRow));
+      });
+    }
   }, []);
 
   const visibleProducts = useMemo(() => {
@@ -337,7 +345,7 @@ export default function Home() {
                 </div>
                 <div className="product-info">
                   <small>{product.category}</small>
-                  <h3>{catalogProducts.find((item) => item.id === product.id) ? <Link href={`/products/${catalogProducts.find((item) => item.id === product.id)?.slug}`}>{product.name}</Link> : product.name}</h3>
+                  <h3>{product.slug ? <Link href={`/products/${product.slug}`}>{product.name}</Link> : product.name}</h3>
                   <div className="rating"><span>★</span> {product.rating} <small>({product.reviews})</small></div>
                   <div className="price"><b>{naira.format(product.price)}</b>{product.oldPrice && <del>{naira.format(product.oldPrice)}</del>}</div>
                 </div>

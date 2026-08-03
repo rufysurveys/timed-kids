@@ -6,6 +6,7 @@ import { SimpleHeader } from "@/components/simple-header";
 import { useCart } from "@/components/cart-provider";
 import { naira } from "@/lib/catalog";
 import { deliveryFee, storageKey, store } from "@/config/store";
+import { createClient, hasSupabaseConfig } from "@/lib/supabase/client";
 
 type Receipt = { reference: string; total: number; whatsappUrl: string };
 
@@ -14,13 +15,17 @@ export default function CheckoutPage() {
   const [receipt, setReceipt] = useState<Receipt | null>(null);
   const delivery = deliveryFee(subtotal);
 
-  function placeOrder(event: FormEvent<HTMLFormElement>) {
+  async function placeOrder(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!items.length) return;
     const customer = Object.fromEntries(new FormData(event.currentTarget));
     const order = { reference: `${store.orderPrefix}-${Math.round(event.timeStamp).toString(36).toUpperCase()}`, total: subtotal + delivery, items, status: "pending", createdAt: new Date().toISOString(), customer };
     const saved = JSON.parse(window.localStorage.getItem(storageKey("orders")) || "[]") as unknown[];
     window.localStorage.setItem(storageKey("orders"), JSON.stringify([order, ...saved]));
+    if (hasSupabaseConfig()) {
+      const { error } = await createClient().from("store_orders").insert({ reference: order.reference, status: "pending", customer, items, subtotal, delivery_fee: delivery, total: order.total });
+      if (error) return window.alert(`The order could not be submitted: ${error.message}`);
+    }
     const lines = items.map((item) => `${item.quantity}× ${item.name} — ${naira.format(item.price * item.quantity)}`).join("\n");
     const whatsappMessage = `Hello ${store.name}, I have placed order ${order.reference}.\n\n${lines}\nDelivery: ${naira.format(delivery)}\nTotal: ${naira.format(order.total)}\n\nCustomer: ${customer.fullName}\nPhone: ${customer.phone}\nAddress: ${customer.address}, ${customer.city}, ${customer.state}`;
     setReceipt({ reference: order.reference, total: order.total, whatsappUrl: `https://wa.me/${store.contact.whatsapp}?text=${encodeURIComponent(whatsappMessage)}` });

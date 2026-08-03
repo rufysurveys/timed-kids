@@ -37,3 +37,13 @@ export const naira = new Intl.NumberFormat(store.locale, { style: "currency", cu
 export function getProduct(slug: string) {
   return products.find((product) => product.slug === slug);
 }
+
+export type StoreProductRow = {
+  id: number; slug: string; name: string; category: string; description: string;
+  price: number; old_price: number | null; stock: number; image_url: string;
+  badge: string | null; is_active: boolean;
+};
+
+export function productFromRow(row: StoreProductRow): Product {
+  return { id: row.id, slug: row.slug, name: row.name, category: row.category, description: row.description, price: Number(row.price), oldPrice: row.old_price ? Number(row.old_price) : undefined, stock: row.stock, image: row.image_url, badge: row.badge || undefined, rating: 5, reviews: 0 };
+}

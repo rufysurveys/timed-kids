@@ -13,6 +13,7 @@ export type Product = {
   badge?: string;
   description: string;
   stock?: number;
+  video?: string;
 };
 
 export const products: Product[] = [
@@ -41,9 +42,9 @@ export function getProduct(slug: string) {
 export type StoreProductRow = {
   id: number; slug: string; name: string; category: string; description: string;
   price: number; old_price: number | null; stock: number; image_url: string;
-  badge: string | null; is_active: boolean;
+  badge: string | null; video_url: string | null; is_active: boolean;
 };
 
 export function productFromRow(row: StoreProductRow): Product {
-  return { id: row.id, slug: row.slug, name: row.name, category: row.category, description: row.description, price: Number(row.price), oldPrice: row.old_price ? Number(row.old_price) : undefined, stock: row.stock, image: row.image_url, badge: row.badge || undefined, rating: 5, reviews: 0 };
+  return { id: row.id, slug: row.slug, name: row.name, category: row.category, description: row.description, price: Number(row.price), oldPrice: row.old_price ? Number(row.old_price) : undefined, stock: row.stock, image: row.image_url, video: row.video_url || undefined, badge: row.badge || undefined, rating: 5, reviews: 0 };
 }

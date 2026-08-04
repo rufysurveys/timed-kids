@@ -13,6 +13,7 @@ create table if not exists public.store_products (
   old_price numeric(12,2) check (old_price is null or old_price >= price),
   stock integer not null default 0 check (stock >= 0),
   image_url text not null,
+  video_url text,
   badge text,
   is_active boolean not null default true,
   created_at timestamptz not null default now(),
@@ -33,7 +34,7 @@ create table if not exists public.store_orders (
 
 create or replace function public.is_timed_kids_owner()
 returns boolean language sql stable security definer set search_path = ''
-as $$ select lower(coalesce(auth.jwt() ->> 'email', '')) = 'rufysanctuary@gmail.com' $$;
+as $$ select lower(coalesce(auth.jwt() ->> 'email', '')) = 'rufysurveys@gmail.com' $$;
 
 alter table public.store_products enable row level security;
 alter table public.store_orders enable row level security;
@@ -65,8 +66,8 @@ $$;
 grant execute on function public.track_store_order(text) to anon, authenticated;
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-values ('product-images', 'product-images', true, 5242880, array['image/jpeg','image/png','image/webp'])
-on conflict (id) do update set public = excluded.public;
+values ('product-images', 'product-images', true, 52428800, array['image/jpeg','image/png','image/webp','video/mp4','video/webm'])
+on conflict (id) do update set public = excluded.public, file_size_limit = excluded.file_size_limit, allowed_mime_types = excluded.allowed_mime_types;
 
 create policy "Public can view product images" on storage.objects
 for select using (bucket_id = 'product-images');

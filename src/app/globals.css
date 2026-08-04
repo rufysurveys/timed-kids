@@ -226,6 +226,8 @@ footer { padding-top: 55px; background: #0d1812; color: white; }
 .product-detail { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(360px, .95fr); gap: 65px; align-items: center; }
 .product-detail-image { min-height: 560px; position: relative; overflow: hidden; border-radius: 16px; background: var(--cream); }
 .product-detail-image img { object-fit: cover; }
+.product-media { min-width: 0; }
+.product-video { width: 100%; max-height: 420px; margin-top: 14px; display: block; border-radius: 12px; background: #111; }
 .product-detail-copy > span { color: var(--green); font-size: 10px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; }
 .product-detail-copy h1 { margin: 12px 0 16px; font: 48px/1.05 Georgia, serif; letter-spacing: -2px; }
 .product-detail-copy > p { color: var(--muted); line-height: 1.7; }
@@ -276,6 +278,7 @@ footer { padding-top: 55px; background: #0d1812; color: white; }
 .owner-product-form input[name="description"] { grid-column: span 2; }
 .file-input { min-height: 44px; padding: 8px 12px; display: flex; align-items: center; gap: 10px; border: 1px solid #d7dcd7; border-radius: 5px; color: var(--muted); font-size: 11px; }
 .file-input input { min-height: 0; padding: 0; border: 0; }
+.upload-help { margin: 14px 0 0; color: var(--muted); font-size: 11px; }
 .owner-list article { padding: 15px 0; display: flex; justify-content: space-between; align-items: center; gap: 20px; border-top: 1px solid var(--line); }
 .owner-list b, .owner-list small { display: block; }
 .owner-list small { margin-top: 5px; color: var(--muted); }

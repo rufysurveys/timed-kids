@@ -1,20 +1,6 @@
 import { store } from "@/config/store";
 
-export type Product = {
-  id: number;
-  slug: string;
-  name: string;
-  category: string;
-  price: number;
-  oldPrice?: number;
-  rating: number;
-  reviews: number;
-  image: string;
-  badge?: string;
-  description: string;
-  stock?: number;
-  video?: string;
-};
+export type Product = { id: number; slug: string; name: string; category: string; price: number; oldPrice?: number; rating: number; reviews: number; image: string; badge?: string; description: string; stock?: number; video?: string };
 
 export const products: Product[] = [
   { id: 1, slug: "sunshine-cotton-party-dress", name: "Sunshine Cotton Party Dress", category: "Girls", price: 18500, oldPrice: 22000, rating: 4.9, reviews: 34, image: "https://images.unsplash.com/photo-1622290291468-a28f7a7dc6a8?auto=format&fit=crop&w=900&q=85", badge: "Best seller", description: "A soft, cheerful cotton dress made for birthdays, outings and picture-perfect family moments.", stock: 14 },
@@ -32,19 +18,22 @@ export const products: Product[] = [
 ];
 
 export const categories = ["Girls", "Boys", "Baby", "Unisex", "Footwear"];
-
 export const naira = new Intl.NumberFormat(store.locale, { style: "currency", currency: store.currency, maximumFractionDigits: 0 });
+export function getProduct(slug: string) { return products.find((product) => product.slug === slug); }
 
-export function getProduct(slug: string) {
-  return products.find((product) => product.slug === slug);
-}
+export type StoreProductRow = { id: number; slug: string; name: string; category: string; description: string; price: number; old_price: number | null; stock: number; image_url: string; badge: string | null; video_url: string | null; is_active: boolean };
+export function productFromRow(row: StoreProductRow): Product { return { id: row.id, slug: row.slug, name: row.name, category: row.category, description: row.description, price: Number(row.price), oldPrice: row.old_price ? Number(row.old_price) : undefined, stock: row.stock, image: row.image_url, video: row.video_url || undefined, badge: row.badge || undefined, rating: 5, reviews: 0 }; }
 
-export type StoreProductRow = {
-  id: number; slug: string; name: string; category: string; description: string;
-  price: number; old_price: number | null; stock: number; image_url: string;
-  badge: string | null; video_url: string | null; is_active: boolean;
-};
-
-export function productFromRow(row: StoreProductRow): Product {
-  return { id: row.id, slug: row.slug, name: row.name, category: row.category, description: row.description, price: Number(row.price), oldPrice: row.old_price ? Number(row.old_price) : undefined, stock: row.stock, image: row.image_url, video: row.video_url || undefined, badge: row.badge || undefined, rating: 5, reviews: 0 };
+export const FREE_DELIVERY_THRESHOLD = 50000;
+export const STANDARD_DELIVERY_FEE = 2500;
+export function calculateOrder(items: Array<{ id: number; quantity: number }>) {
+  const normalized = items.map((item) => {
+    const product = products.find((entry) => entry.id === item.id);
+    const quantity = Math.floor(Number(item.quantity));
+    if (!product || !Number.isFinite(quantity) || quantity < 1 || quantity > 20 || quantity > (product.stock ?? 0)) throw new Error("Your cart contains an invalid product or quantity.");
+    return { id: item.id, quantity, unitPrice: product.price };
+  });
+  const subtotal = normalized.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
+  const deliveryFee = subtotal >= FREE_DELIVERY_THRESHOLD ? 0 : STANDARD_DELIVERY_FEE;
+  return { items: normalized, subtotal, deliveryFee, total: subtotal + deliveryFee };
 }

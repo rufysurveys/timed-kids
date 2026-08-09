@@ -1,33 +1,28 @@
 "use client";
 
-import { FormEvent, useState } from "react";
-import Link from "next/link";
+import { FormEvent, Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { SimpleHeader } from "@/components/simple-header";
-import { naira } from "@/lib/catalog";
-import { storageKey, store } from "@/config/store";
-import { createClient, hasSupabaseConfig } from "@/lib/supabase/client";
 
-type TrackedOrder = { reference: string; total: number; status: string; createdAt: string };
+type TrackResult = { order?: { tracking_code: string; fulfillment_status: string; customer_name: string; delivery_address: { city?: string; state?: string }; created_at: string }; events?: Array<{ status: string; title: string; description?: string; location?: string; created_at: string }>; error?: string };
 
-export default function TrackPage() {
-  const [order, setOrder] = useState<TrackedOrder | null>(null);
-  const [searched, setSearched] = useState(false);
+function Tracking() {
+  const initial = useSearchParams().get("code") || "";
+  const [code, setCode] = useState(initial);
+  const [result, setResult] = useState<TrackResult | null>(null);
+  const [loading, setLoading] = useState(false);
+  async function find(value: string) { if (!value) return; setLoading(true); const response = await fetch(`/api/orders/track?code=${encodeURIComponent(value)}`); setResult(await response.json()); setLoading(false); }
+  useEffect(() => {
+    if (initial) queueMicrotask(() => void find(initial));
+  }, [initial]);
+  function submit(event: FormEvent) { event.preventDefault(); void find(code); }
 
-  async function search(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const reference = String(new FormData(event.currentTarget).get("reference")).trim().toUpperCase();
-    let result: TrackedOrder | null = null;
-    if (hasSupabaseConfig()) {
-      const response = await createClient().rpc("track_store_order", { order_reference: reference });
-      if (response.data?.[0]) result = response.data[0] as TrackedOrder;
-    }
-    if (!result) {
-      const orders = JSON.parse(window.localStorage.getItem(storageKey("orders")) || "[]") as TrackedOrder[];
-      result = orders.find((item) => item.reference.toUpperCase() === reference) || null;
-    }
-    setOrder(result);
-    setSearched(true);
-  }
-
-  return <><SimpleHeader /><main className="inner-page page-shell track-page"><div className="page-title"><span>ORDER TRACKING</span><h1>Where is my order?</h1><p>Enter the reference shown after checkout.</p></div><form className="track-form" onSubmit={search}><input name="reference" placeholder={`${store.orderPrefix}-XXXX`} required /><button className="primary-button">Track order</button></form>{order ? <section className="tracking-result"><span className={`status-badge status-${order.status}`}>{order.status}</span><h2>{order.reference}</h2><p>Placed {new Date(order.createdAt || (order as TrackedOrder & { created_at?: string }).created_at || "").toLocaleString()} · Total {naira.format(Number(order.total))}</p><div className="tracking-steps"><i className="done" /><span>Order received</span><i className={order.status !== "pending" ? "done" : ""} /><span>Confirmed</span><i className={order.status === "delivered" ? "done" : ""} /><span>Delivered</span></div><a className="primary-button whatsapp-button" href={`https://wa.me/${store.contact.whatsapp}?text=${encodeURIComponent(`Hello ${store.name}, please help me with order ${order.reference}.`)}`}>Ask on WhatsApp</a></section> : searched && <section className="empty-state"><h3>Order not found</h3><p>Check the reference and try again, or contact us on WhatsApp.</p></section>}<Link className="back-shop" href="/">← Continue shopping</Link></main></>;
+  return <>
+    <div className="page-title track-title"><span>DELIVERY TRACKING</span><h1>Where is my order?</h1><p>Enter the tracking code from your payment confirmation.</p></div>
+    <form className="track-search" onSubmit={submit}><input value={code} onChange={event => setCode(event.target.value)} placeholder="e.g. SS12345678901" required /><button className="primary-button">{loading ? "Searching..." : "Track order"}</button></form>
+    {result?.error && <div className="track-error">{result.error}</div>}
+    {result?.order && <section className="tracking-card"><div className="tracking-head"><div><small>TRACKING CODE</small><strong>{result.order.tracking_code}</strong></div><span>{result.order.fulfillment_status.replaceAll("_", " ")}</span></div><div className="tracking-destination"><p><small>DELIVERING TO</small><b>{result.order.customer_name}</b><span>{result.order.delivery_address.city}, {result.order.delivery_address.state}</span></p><p><small>ORDER DATE</small><b>{new Date(result.order.created_at).toLocaleDateString("en-NG", { dateStyle: "medium" })}</b></p></div><div className="timeline">{result.events?.map((event, index) => <article key={`${event.status}-${index}`} className="timeline-event"><i>✓</i><div><span>{event.title}</span><p>{event.description}</p><small>{new Date(event.created_at).toLocaleString("en-NG", { dateStyle: "medium", timeStyle: "short" })}{event.location ? ` · ${event.location}` : ""}</small></div></article>)}</div></section>}
+  </>;
 }
+
+export default function TrackPage() { return <><SimpleHeader /><main className="track-page page-shell"><Suspense fallback={null}><Tracking /></Suspense></main></>; }

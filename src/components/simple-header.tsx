@@ -17,6 +17,7 @@ export function SimpleHeader() {
         <nav>
           <Link href="/">Continue shopping</Link>
           <Link href="/account">Account</Link>
+          <Link href="/track">Track order</Link>
           <Link href="/owner">Owner</Link>
           <Link className="cart-pill" href="/cart">Cart <span>{count}</span></Link>
         </nav>
